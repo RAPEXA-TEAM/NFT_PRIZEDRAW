@@ -22,7 +22,7 @@ System for run a lottory after minting between buyers
     CREATE TABLE users (id INT NOT NULL AUTO_INCREMENT, wallet VARCHAR(255) NOT NULL, nft VARCHAR(255) NOT NULL, uniqeid VARCHAR(255) NOT NULL, PRIMARY KEY(id), UNIQUE (id));
     DROP TABLE groupss;
     CREATE TABLE groupss (id INT NOT NULL AUTO_INCREMENT, wallet1 VARCHAR(255) NOT NULL, wallet2 VARCHAR(255) NOT NULL, wallet3 VARCHAR(255) NOT NULL, winner VARCHAR(255) NOT NULL, uniqeid VARCHAR(255) NOT NULL, status VARCHAR(255) NOT NULL, PRIMARY KEY(id), UNIQUE (id));
-    CREATE TABLE winers (id INT NOT NULL AUTO_INCREMENT, winner VARCHAR(255) NOT NULL, PRIMARY KEY(id), UNIQUE (id));
+    CREATE TABLE winers (id INT NOT NULL AUTO_INCREMENT, winner VARCHAR(255) NOT NULL, payment VARCHAR(255) NOT NULL, PRIMARY KEY(id), UNIQUE (id));
    ```
 
 9. Create a virtualenve named build using `virtualenv -p python3 venv`

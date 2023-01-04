@@ -273,35 +273,32 @@ def handle_add_to_group():
 def Check_User(user, TokenID):
     '''This function check user address and user nft to validate user'''
 
-    #TODO : buy etherscan api and use below code instead of return True
-    return True
-
-    # contract = CONFIG.CONTRACT_ADDRESS
-    # apikey = CONFIG.APIKEY
-    # baseurl = CONFIG.APIURL
+    contract = CONFIG.CONTRACT_ADDRESS
+    apikey = CONFIG.APIKEY
+    baseurl = CONFIG.APIURL
     
-    # query = f"?module=account&action=addresstokennftinventory&address={user}&contractaddress={contract}&page=1&offset=100&apikey={apikey}"
-    # #query1 = f"?module=account&action=tokennfttx&contractaddress={contract}&address={user}&page=1&offset=100&startblock=0&endblock=99999999&sort=asc&apikey={apikey}"
+    query = f"?module=account&action=addresstokennftinventory&address={user}&contractaddress={contract}&page=1&offset=100&apikey={apikey}"
+    #query1 = f"?module=account&action=tokennfttx&contractaddress={contract}&address={user}&page=1&offset=100&startblock=0&endblock=99999999&sort=asc&apikey={apikey}"
 
-    # url = baseurl + query
-    # response = requests.get(url)
-    # json_Response = response.json()
+    url = baseurl + query
+    response = requests.get(url)
+    json_Response = response.json()
 
-    # try:
+    try:
 
-    #     list_tokens = []
+        list_tokens = []
         
-    #     for result in json_Response["result"]:
-    #         list_tokens.append(result["TokenId"])
+        for result in json_Response["result"]:
+            list_tokens.append(result["TokenId"])
         
-    #     if TokenID in list_tokens:
-    #         return True
+        if TokenID in list_tokens:
+            return True
 
-    #     else:
-    #         return False
+        else:
+            return False
 
-    # except:
-    #     return False
+    except:
+        return False
 
 if __name__ == "__main__":
     app.run("0.0.0.0",80,debug=True)
