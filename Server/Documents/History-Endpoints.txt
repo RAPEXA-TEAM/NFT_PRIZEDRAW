@@ -1,0 +1,19 @@
+Url : 89.208.103.1/historys
+Method : GET
+
+Responses :
+
+{
+  "Status Code": 200,
+  "groups": {
+    "1": {
+      "uniqeid": "079caaa44f001cd414a6e6aa1c7e7c186ddb30c1a3cbd509925de6c97f8d4087",
+      "wallet1": "0xBe1db1dc16341f7eD608753D94583c458fF4098F",
+      "wallet2": "0xBe1db1dc16341f7eD608753D94583c458fF4098F",
+      "wallet3": "0xBe1db1dc16341f7eD608753D94583c458fF4098F",
+      "winner": "0xBe1db1dc16341f7eD608753D94583c458fF4098F"
+    }
+  }
+}
+
+{"code" : 400 , "data" : "error"}

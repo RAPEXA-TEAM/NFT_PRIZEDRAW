@@ -1,0 +1,7 @@
+Url : 89.208.103.1/balance
+Method : GET
+
+Responses :
+
+{"code" : 200 , "data" : "12.1"}
+{"code" : 400 , "data" : "error"}

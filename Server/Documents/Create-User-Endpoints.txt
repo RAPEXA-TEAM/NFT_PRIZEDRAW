@@ -1,0 +1,11 @@
+Url : 89.208.103.1/create_user
+Method : POST
+Body : {"wallet" : "0xBe1db1dc16341f7eD608753D94583c458fF4098F" , "nftid" : "1"}
+
+Responses :
+
+{"code" : 200 , "data" : "user create correctly !"}
+{"code" : 200 , "data" : "new user create correctly !"}
+{"code" : 500 , "data" : "request not valid !"}
+{"code" : 402 , "data" : "user dont have nft !"}
+{"code" : 400 , "data" : "error connection with mysql !"}
