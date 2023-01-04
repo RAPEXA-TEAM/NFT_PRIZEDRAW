@@ -1,0 +1,19 @@
+#!/usr/bin/env
+
+# Flask
+
+SECRET_KEY = "your_Secret_key"
+
+# MySQL config
+
+MYSQL_HOST = "127.0.0.1"
+MYSQL_USER = "prizedrawuser"
+MYSQL_PASS = "prizedrawpass"
+MYSQL_DATABAS = "prizedraw"
+
+# Web3
+
+MAIN_WALLET = "your_project_main_wallet"
+APIKEY = "your_Etherscan_api_key"
+APIURL = "https://api.etherscan.io/api"
+CONTRACT_ADDRESS = "your_nft_contract_address"
