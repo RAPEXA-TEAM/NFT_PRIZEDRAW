@@ -74,58 +74,77 @@ def handle_create_user():
 
 @app.route("/groups")
 def handle_return_open_group():
-    
-    List_Of_Groups = Mysql.read_groups_from_database()
-    Jsonify_List_Of_Open_Groups = {} 
-    
-    for Group in List_Of_Groups:
-    
-        id, wallet1, wallet2, wallet3, winner, uniqeid, status = Group
-        
-        if status != "closed":
-        
-            Jsonify_List_Of_Open_Groups[id] = {'wallet1' : wallet1 , 'wallet2' : wallet2 , 'wallet3' : wallet3, 'winner' : winner , "uniqeid" : uniqeid}
-        
-        else:
-            continue
 
-    Response = {'Status Code':200 , 'groups': Jsonify_List_Of_Open_Groups}
-    return jsonify(Response), 200
+    try:    
+        List_Of_Groups = Mysql.read_groups_from_database()
+        Jsonify_List_Of_Open_Groups = {} 
+        
+        for Group in List_Of_Groups:
+        
+            id, wallet1, wallet2, wallet3, winner, uniqeid, status = Group
+            
+            if status != "closed":
+            
+                Jsonify_List_Of_Open_Groups[id] = {'wallet1' : wallet1 , 'wallet2' : wallet2 , 'wallet3' : wallet3, 'winner' : winner , "uniqeid" : uniqeid}
+            
+            else:
+                continue
+
+        Response = {'Status Code':200 , 'groups': Jsonify_List_Of_Open_Groups}
+        return jsonify(Response), 200
+
+    except Exception as error:
+        
+        ret = {"code" : 400 , "data" : error}
+        return jsonify(ret)
 
 @app.route("/history")
 def handle_return_close_group():
     
-    List_Of_Groups = Mysql.read_groups_from_database()
-    Jsonify_List_Of_Close_Groups = {} 
-    
-    for Group in List_Of_Groups:
-    
-        id, wallet1, wallet2, wallet3, winner, uniqeid, status = Group
+    try:
+        List_Of_Groups = Mysql.read_groups_from_database()
+        Jsonify_List_Of_Close_Groups = {} 
         
-        if status == "closed":
+        for Group in List_Of_Groups:
         
-            Jsonify_List_Of_Close_Groups[id] = {'wallet1' : wallet1 , 'wallet2' : wallet2 , 'wallet3' : wallet3, 'winner' : winner , "uniqeid" : uniqeid}
-        
-        else:
-            continue
+            id, wallet1, wallet2, wallet3, winner, uniqeid, status = Group
+            
+            if status == "closed":
+            
+                Jsonify_List_Of_Close_Groups[id] = {'wallet1' : wallet1 , 'wallet2' : wallet2 , 'wallet3' : wallet3, 'winner' : winner , "uniqeid" : uniqeid}
+            
+            else:
+                continue
 
-    Response = {'Status Code':200 , 'groups': Jsonify_List_Of_Close_Groups}
-    return jsonify(Response), 200
+        Response = {'Status Code':200 , 'groups': Jsonify_List_Of_Close_Groups}
+        return jsonify(Response), 200
+
+    except Exception as error:
+
+        ret = {"code" : 400 , "data" : error}
+        return jsonify(ret)
 
 @app.route("/balance")
 def handle_balance():
 
-    wallet = CONFIG.MAIN_WALLET
-    baseurl = CONFIG.APIURL
-    apikey = CONFIG.APIKEY
-    query = f"?module=account&action=balance&address={wallet}&tag=latest&apikey={apikey}"
+    try:
+    
+        wallet = CONFIG.MAIN_WALLET
+        baseurl = CONFIG.APIURL
+        apikey = CONFIG.APIKEY
+        query = f"?module=account&action=balance&address={wallet}&tag=latest&apikey={apikey}"
 
-    url = baseurl + query
-    response = requests.get(url)
-    balance = int(response.json()['result']) / 1000000000000000000
+        url = baseurl + query
+        response = requests.get(url)
+        balance = int(response.json()['result']) / 1000000000000000000
 
-    Response = {'Code':200 , 'balance': balance}
-    return jsonify(Response), 200
+        Response = {'Code':200 , 'data': balance}
+        return jsonify(Response), 200
+    
+    except Exception as error:
+
+        ret = {"code" : 400 , "data" : error}
+        return jsonify(ret)
 
 @app.route("/winners")
 def handle_return_winners():
@@ -136,7 +155,7 @@ def handle_return_winners():
 
         if Mysql.update_winner_payment_in_database(wallet):
 
-            ret = {f"payment status for {wallet} insert in database correctly."}
+            ret = {"code" : 200 , "data" : f"payment status for {wallet} insert in database correctly."}
             return jsonify(ret)
         
         else:
