@@ -1,7 +1,6 @@
 #!/usr/bin/env
 
 from flask import Flask, jsonify, request
-from flask_cors import CORS
 import Mysql
 import requests
 import random
@@ -9,7 +8,6 @@ import hashlib
 import CONFIG     #SERVER CONGIG
 
 app = Flask(__name__)
-CORS(app)
 
 # config
 app.config.update(
