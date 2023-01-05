@@ -191,29 +191,35 @@ def handle_create_group():
             id, wallet_db, nft, uniqeid_db = user
             List_of_wallets.append(wallet_db)
 
-        if wallet in List_of_wallets:
+        if Check_attend(wallet):
 
-            if Check_User(wallet, nftid):
-            
-                if Mysql.create_group_to_database(wallet,uniqeid):
-                    
-                    ret = {"code" : 200 , "data" : "group create correctly !"}
-                    return jsonify(ret) , 200
+            if wallet in List_of_wallets:
 
+                if Check_User(wallet, nftid):
+                
+                    if Mysql.create_group_to_database(wallet,uniqeid):
+                        
+                        ret = {"code" : 200 , "data" : "group create correctly !"}
+                        return jsonify(ret) , 200
+
+                    else:
+
+                        ret = {"code" : 401 , "data" : "error connection with mysql !"}
+                        return jsonify(ret) , 401
+                
                 else:
 
-                    ret = {"code" : 401 , "data" : "error connection with mysql !"}
-                    return jsonify(ret) , 401
-            
+                    ret = {"code" : 402 , "data" : "user dont have nft !"}
+                    return jsonify(ret) , 402
+
             else:
 
-                ret = {"code" : 402 , "data" : "user dont have nft !"}
-                return jsonify(ret) , 402
+                ret = {"code" : 404 , "data" : "user dont exist on database !"}
+                return jsonify(ret) , 404
 
         else:
-
-            ret = {"code" : 404 , "data" : "user dont exist on database !"}
-            return jsonify(ret) , 404
+            ret = {"code" : 401 , "data" : "user attended in prizedraw once !"}
+            return jsonify(ret) , 401
 
     ret = {"code" : 500 , "data" : "request not valid !"}
     return jsonify(ret) , 500
@@ -230,64 +236,92 @@ def handle_add_to_group():
 
         List_Of_Groups = Mysql.read_groups_from_database()
         
-        if Check_User(wallet,nftid):
-        
-            for Group in List_Of_Groups:
+        if Check_attend(wallet):
+
+            if Check_User(wallet,nftid):
             
-                id, wallet1, wallet2_db, wallet3, winner, uniqeid_db, status = Group
+                for Group in List_Of_Groups:
                 
-                if status != "closed":
+                    id, wallet1, wallet2_db, wallet3, winner_db_a, uniqeid_db, status = Group
+                    
+                    if status != "closed":
 
-                    if uniqeid_db == uniqeid and wallet2_db != "0":
-                        
-                        if Mysql.writing_Wallet3_in_group_to_database(wallet,uniqeid):
-
-                            List_Of_Groups_db = Mysql.read_groups_from_database()
-                            List_chance = []
-
-                            for Group_db in List_Of_Groups_db:
+                        if uniqeid_db == uniqeid and wallet2_db != "0":
                             
-                                id, wallet1_db_winner, wallet2_db_winner, wallet3_db_winner, winner_db, uniqeid_db_winner, status_db = Group_db
+                            if Mysql.writing_Wallet3_in_group_to_database(wallet,uniqeid):
+
+                                List_Of_Groups_db = Mysql.read_groups_from_database()
+                                List_chance = []
+
+                                for Group_db in List_Of_Groups_db:
                                 
-                                if uniqeid_db_winner == uniqeid:
-                                    List_chance.append(wallet1_db_winner)
-                                    List_chance.append(wallet2_db_winner)
-                                    List_chance.append(wallet3_db_winner)
-                            
-                            winner = random.choice(List_chance)
-                            Mysql.writing_Winer_to_database(winner,uniqeid)
-                            ret = {"code" : 200 , "data" : "wallet 3 added to group correctly !"}
-                            return jsonify(ret) , 200
+                                    id, wallet1_db_winner, wallet2_db_winner, wallet3_db_winner, winner_db, uniqeid_db_winner, status_db = Group_db
+                                    
+                                    if uniqeid_db_winner == uniqeid:
+                                        List_chance.append(wallet1_db_winner)
+                                        List_chance.append(wallet2_db_winner)
+                                        List_chance.append(wallet3_db_winner)
+                                
+                                winner = random.choice(List_chance)
+                                Mysql.writing_Winer_to_database(winner,uniqeid)
+                                ret = {"code" : 200 , "data" : "wallet 3 added to group correctly !"}
+                                return jsonify(ret) , 200
+
+                            else:
+
+                                ret = {"code" : 406 , "data" : "error connection to database!"}
+                                return jsonify(ret) , 406
 
                         else:
 
-                            ret = {"code" : 406 , "data" : "error connection to database!"}
-                            return jsonify(ret) , 406
+                            if uniqeid_db == uniqeid and Mysql.writing_Wallet2_in_group_to_database(wallet,uniqeid):
 
-                    else:
+                                ret = {"code" : 200 , "data" : "wallet 2 added to group correctly !"}
+                                return jsonify(ret) , 200
 
-                        if uniqeid_db == uniqeid and Mysql.writing_Wallet2_in_group_to_database(wallet,uniqeid):
+                            else:
 
-                            ret = {"code" : 200 , "data" : "wallet 2 added to group correctly !"}
-                            return jsonify(ret) , 200
+                                ret = {"code" : 406 , "data" : "error connection to database!"}
+                                return jsonify(ret) , 406
 
-                        else:
+                else:
 
-                            ret = {"code" : 406 , "data" : "error connection to database!"}
-                            return jsonify(ret) , 406
+                    ret = {"code" : 402 , "data" : "group status is closed !"}
+                    return jsonify(ret) , 402
 
             else:
 
-                ret = {"code" : 402 , "data" : "group status is closed !"}
-                return jsonify(ret) , 402
-
+                    ret = {"code" : 401 , "data" : "user dont have nft !"}
+                    return jsonify(ret) , 402
         else:
-
-                ret = {"code" : 401 , "data" : "user dont have nft !"}
-                return jsonify(ret) , 402
+            ret = {"code" : 401 , "data" : "user attended in prizedraw once !"}
+            return jsonify(ret) , 401
 
     ret = {"code" : 500 , "data" : "request not valid !"}
     return jsonify(ret) , 500
+
+def Check_attend(wallet):
+
+    try:
+
+        List_Of_Groups = Mysql.read_groups_from_database()
+        List_Of_Groups_Members = [] 
+
+        for Group in List_Of_Groups:
+
+            id, wallet1, wallet2, wallet3, winner, uniqeid_group, status = Group
+            List_Of_Groups_Members.append(wallet1)
+            List_Of_Groups_Members.append(wallet2)
+            List_Of_Groups_Members.append(wallet3)
+
+        if wallet not in List_Of_Groups_Members:
+            return True
+        
+        else:
+            return False
+
+    except:
+        return False
 
 def Check_User(user, TokenID):
     '''This function check user address and user nft to validate user'''
