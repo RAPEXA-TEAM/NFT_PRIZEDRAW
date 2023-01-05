@@ -1,35 +1,14 @@
 Url : 89.208.103.1/winners
-Method : POST
-Body : {"wallet" : "0xBe1db1dc16341f7eD608753D94583c458fF4098F"}
-
-Responses :
-
-{
-  "Code": 200,
-  "winners": {
-    "1": {
-      "amount": "0.07776",
-      "status": "no",
-      "winner": "0xBe1db1dc16341f7eD608753D94583c458fF4098F"
-    }
-  }
-}
-
-{"code" : 200 , "data" : "payment status for 0xBe1db1dc16341f7eD608753D94583c458fF4098F insert in database correctly."}
-{"code" : 400 , "data" : "error connection with mysql !"}
-
------------------------------------------------------------------
-
-Url : 89.208.103.1/winners
 Method : GET
 
 {
   "Code": 200,
   "winners": {
     "1": {
-      "amount": "0.07776",
-      "status": "no",
+      "nft": "7926",
+      "txhash": "0xb5c8bd9430b6cc87a0e2fe110ece6bf527fa4f170a4bc8cd032f768fc5219838",
       "winner": "0xBe1db1dc16341f7eD608753D94583c458fF4098F"
     }
   }
 }
+
