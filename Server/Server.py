@@ -1,6 +1,8 @@
 #!/usr/bin/env
 
 from flask import Flask, jsonify, request
+from flask_cors import CORS
+from web3 import Web3
 import Mysql
 import requests
 import random
@@ -8,11 +10,58 @@ import hashlib
 import CONFIG     #SERVER CONGIG
 
 app = Flask(__name__)
+CORS(app)
 
 # config
 app.config.update(
     SECRET_KEY = CONFIG.SECRET_KEY
 )
+
+# whitelist
+
+whitelist_wallets_file = open("Whitelist.txt","r")
+whitelist_wallets_from_file = whitelist_wallets_file.readlines()
+whitelist = []
+
+for wallet in whitelist_wallets_from_file:
+    whitelist.append(wallet.strip())
+
+@app.route("/whitelist",methods=["GET","POST"])
+def handle_whitelist():
+    if request.method == "POST":
+
+        wallet = request.json["wallet"]
+        
+        if wallet in whitelist:
+            ret = {"code" : 200 , "data" : "ok"}
+            return jsonify(ret)
+
+        else:
+            ret = {"code" : 404 , "data" : "error"}
+            return jsonify(ret)    
+
+    ret = {"code" : 500 , "data" : "request not valid !"}
+    return jsonify(ret) , 500
+
+@app.route("/wallets",methods=["GET","POST"])
+def handle_wallets():
+
+    try:    
+
+        List_Of_users = Mysql.read_users_from_database() 
+        Users = {}
+        for user in List_Of_users:
+
+            id, wallet_db, nft, uniqeid_db = user
+            Users[wallet_db] = {'nft' : nft}
+
+        Response = {'Status Code':200 , 'Users': Users}
+        return jsonify(Response), 200
+
+    except Exception as error:
+        
+        ret = {"code" : 400 , "data" : error}
+        return jsonify(ret)
 
 @app.route("/create_user",methods=["GET","POST"])
 def handle_create_user():
@@ -80,10 +129,14 @@ def handle_return_open_group():
         for Group in List_Of_Groups:
         
             id, wallet1, wallet2, wallet3, winner, uniqeid, status = Group
-            
+            nft1 = wallet_to_nft(wallet1)
+            nft2 = wallet_to_nft(wallet2)
+            nft3 = wallet_to_nft(wallet3)
+            nft_winner = wallet_to_nft(winner)
+
             if status != "closed":
             
-                Jsonify_List_Of_Open_Groups[id] = {'wallet1' : wallet1 , 'wallet2' : wallet2 , 'wallet3' : wallet3, 'winner' : winner , "uniqeid" : uniqeid}
+                Jsonify_List_Of_Open_Groups[id] = {'wallet1' : wallet1 , 'nft1' : nft1 , 'wallet2' : wallet2 , 'nft2' : nft2 , 'wallet3' : wallet3, 'nft3' : nft3 , 'winner' : winner , 'nft_winner' : nft_winner , "uniqeid" : uniqeid}
             
             else:
                 continue
@@ -106,10 +159,15 @@ def handle_return_close_group():
         for Group in List_Of_Groups:
         
             id, wallet1, wallet2, wallet3, winner, uniqeid, status = Group
-            
+            nft1 = wallet_to_nft(wallet1)
+            nft2 = wallet_to_nft(wallet2)
+            nft3 = wallet_to_nft(wallet3)
+            nft_winner = wallet_to_nft(winner)
+
+
             if status == "closed":
             
-                Jsonify_List_Of_Close_Groups[id] = {'wallet1' : wallet1 , 'wallet2' : wallet2 , 'wallet3' : wallet3, 'winner' : winner , "uniqeid" : uniqeid}
+                Jsonify_List_Of_Close_Groups[id] = {'wallet1' : wallet1 , 'nft1' : nft1 , 'wallet2' : wallet2 , 'nft2' : nft2 , 'wallet3' : wallet3, 'nft3' : nft3 , 'winner' : winner , 'nft_winner' : nft_winner , "uniqeid" : uniqeid}
             
             else:
                 continue
@@ -147,26 +205,14 @@ def handle_balance():
 @app.route("/winners")
 def handle_return_winners():
 
-    if request.method == "POST":
-        
-        wallet = request.json["wallet"]
-
-        if Mysql.update_winner_payment_in_database(wallet):
-
-            ret = {"code" : 200 , "data" : f"payment status for {wallet} insert in database correctly."}
-            return jsonify(ret)
-        
-        else:
-            ret = {"code" : 400 , "data" : "error connection with mysql !"}
-            return jsonify(ret)
-
     List_Of_winners = Mysql.read_winners_from_database()
     Jsonify_List_Of_winners = {}
     
     for winer in List_Of_winners:
     
         id, wallet , payment= winer
-        Jsonify_List_Of_winners[id] = {"winner" : wallet , 'amount' : '0.07776', 'status' : payment}
+        nft = wallet_to_nft(wallet)
+        Jsonify_List_Of_winners[id] = {"winner" : wallet , 'nft' :nft,'txhash' : payment}
         
 
     Response = {'Code':200 , 'winners': Jsonify_List_Of_winners}
@@ -261,7 +307,8 @@ def handle_add_to_group():
                                         List_chance.append(wallet3_db_winner)
                                 
                                 winner = random.choice(List_chance)
-                                Mysql.writing_Winer_to_database(winner,uniqeid)
+                                tx_hash = Send_prize(winner)
+                                Mysql.writing_Winer_to_database(winner,uniqeid,tx_hash)
                                 ret = {"code" : 200 , "data" : "wallet 3 added to group correctly !"}
                                 return jsonify(ret) , 200
 
@@ -298,6 +345,65 @@ def handle_add_to_group():
     ret = {"code" : 500 , "data" : "request not valid !"}
     return jsonify(ret) , 500
 
+def Send_prize(wallet):
+    web3 = Web3(Web3.HTTPProvider(CONFIG.ETH_URL))
+    block = web3.eth.get_block('latest')
+
+    total_prize = (0.096 * 0.3) * 3
+    prize_fee = total_prize * 0.1
+    gas = 16000000000
+    main_prize_without_gas_fee = total_prize - prize_fee
+    main_prize_with_gas_fee = web3.toWei(main_prize_without_gas_fee, 'ether') - block.gasLimit
+
+    #get the nonce.  Prevents one from sending the transaction twice
+    nonce = web3.eth.getTransactionCount(wallet)
+
+    #build a transaction in a dictionary
+    tx = {
+        'nonce': nonce,
+        'to': str(wallet),
+        'value': main_prize_with_gas_fee,
+        'gas': block.gasLimit,
+        'gasPrice': web3.eth.gas_price
+    }
+
+    #sign the transaction
+    signed_tx = web3.eth.account.sign_transaction(tx, CONFIG.WALLET_KEY)
+
+    #send transaction
+    tx_hash = web3.eth.sendRawTransaction(signed_tx.rawTransaction)
+
+    #get transaction hash
+    return web3.toHex(tx_hash)
+
+def wallet_to_nft(wallet):
+
+    try:
+
+        List_Of_users = Mysql.read_users_from_database() 
+        Users = {}
+        
+        for user in List_Of_users:
+
+            id, wallet_db, nft_db, uniqeid_db = user
+            Users[wallet_db] = nft_db
+        
+        for Wallet_user, nft in Users.items():
+            
+            if wallet != Wallet_user:
+
+                continue 
+
+            else:
+
+                return nft
+
+        return "0"
+
+    except:
+
+        return "0"
+
 def Check_attend(wallet):
 
     try:
@@ -329,7 +435,6 @@ def Check_User(user, TokenID):
     baseurl = CONFIG.APIURL
     
     query = f"?module=account&action=addresstokennftinventory&address={user}&contractaddress={contract}&page=1&offset=100&apikey={apikey}"
-    #query1 = f"?module=account&action=tokennfttx&contractaddress={contract}&address={user}&page=1&offset=100&startblock=0&endblock=99999999&sort=asc&apikey={apikey}"
 
     url = baseurl + query
     response = requests.get(url)
