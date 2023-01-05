@@ -17,3 +17,6 @@ MAIN_WALLET = "your_project_main_wallet"
 APIKEY = "your_Etherscan_api_key"
 APIURL = "https://api.etherscan.io/api"
 CONTRACT_ADDRESS = "your_nft_contract_address"
+ETH_URL = "https://mainnet.infura.io/v3/<your_infura_api_key>"
+WALLET = 'your_prize_wallet'
+WALLET_KEY = 'your_prize_wallet_secret_key'
