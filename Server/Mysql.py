@@ -61,7 +61,7 @@ def writing_Wallet3_in_group_to_database(wallet,uniqeid):
     db.close()
     return True
 
-def writing_Winer_to_database(winer_wallet,uniqeid):
+def writing_Winer_to_database(winer_wallet,uniqeid,txhash):
     '''This function write one game winner to database'''
     db = connect_to_database()
     cur = db.cursor()                       
@@ -77,17 +77,8 @@ def writing_Winer_to_database(winer_wallet,uniqeid):
     db.close()
     db = connect_to_database()
     cur = db.cursor()
-    query = f'INSERT INTO winers (id, winner , payment) VALUES (null, "{winer_wallet}", "no");'
+    query = f'INSERT INTO winers (id, winner , payment) VALUES (null, "{winer_wallet}", "{txhash}");'
     cur.execute(query)
-    db.commit()
-    db.close()
-    return True
-
-def update_winner_payment_in_database(winner):
-    db = connect_to_database()
-    cur = db.cursor()                       
-    qury = f'UPDATE winers SET payment = "yes" WHERE winner = "{winner}";'
-    cur.execute(qury)
     db.commit()
     db.close()
     return True
